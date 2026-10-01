@@ -83,6 +83,15 @@ h1{font:800 clamp(30px,6vw,48px)/1.05 'Bricolage Grotesque',sans-serif;letter-sp
 .queue li.hit{background:var(--accent-soft)}
 .queue li.hit .n{background:var(--accent);color:#fff}
 .queue li.hit .name{font-weight:700}
+.queue li{cursor:pointer;user-select:none;transition:background .12s}
+.queue li:hover{background:var(--soft)}
+.queue li.done{opacity:.45}
+.queue li.done .name{text-decoration:line-through}
+.queue li.done .n{background:var(--ok);color:#fff}
+.queue li.now{box-shadow:inset 3px 0 0 var(--accent)}
+.queue li.now .name{font-weight:700}
+.now-tag{margin-left:auto;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.linkbtn{border:0;background:none;padding:0;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline}
 
 /* Buyers */
 .buyers{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
@@ -201,7 +210,7 @@ footer{color:var(--muted);font-size:13px;margin-top:40px;text-align:center}
         <button role="tab" data-side="queue">Rip order</button>
         <button role="tab" data-side="chat">Twitch chat</button>
       </div>
-      <div class="side-pane queue-scroll" id="s-queue"><p class="hint">Bundle boxes, in the order Tofu opens them.</p><ol class="queue" id="queue"></ol></div>
+      <div class="side-pane queue-scroll" id="s-queue"><p class="hint" id="qhint"></p><ol class="queue" id="queue"></ol></div>
       <div class="side-pane chat" id="s-chat" hidden></div>
     </section>
   </div>
@@ -285,7 +294,10 @@ function build(rows){
   }
   const date=((rows[0]||[])[6]||'').trim();
   const stream=((rows[1]||[])[6]||'').trim();
-  return {orders,queue,date,stream};
+  // Stable id per box ("JJ F#2" = JJ F's second box) so ticks survive Tofu
+  // adding or removing other names.
+  const seen={}; const qkeys=queue.map(n=>{seen[n]=(seen[n]||0)+1;return n+'#'+seen[n]});
+  return {orders,queue,qkeys,date,stream};
 }
 
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -297,6 +309,9 @@ function renderMine(term,hit){
   const {orders,queue}=data;
   const mine=orders.filter(o=>!o.house && hit(o.name));
   const spots=queue.map((n,i)=>hit(n)?i+1:0).filter(Boolean);
+  const isDone=i=>struck.has(data.qkeys[i]);
+  const open=spots.filter(s=>!isDone(s-1));
+  const ahead=open.length?queue.slice(0,open[0]-1).filter((_,i)=>!isDone(i)).length:null;
   el.hidden=false;
   if(!mine.length && !spots.length){
     el.innerHTML=`<h2>No packs found for “${esc(term)}”</h2><p class="empty">Check the spelling, or <a href="https://mrtofu.store/collections/mr-tofu-live-stream" target="_blank" rel="noopener">grab a spot in the shop</a>.</p>`;
@@ -309,12 +324,12 @@ function renderMine(term,hit){
     <div class="facts">
       <div><b>${packs}</b><small>packs total</small></div>
       ${spots.length?`<div><b>#${spots.join(', #')}</b><small>in rip order</small></div>
-      <div><b>${spots[0]-1}</b><small>boxes before yours</small></div>`:''}
+      <div><b>${ahead==null?'✓':ahead}</b><small>${ahead==null?'all your boxes ripped':'boxes left before yours'}</small></div>`:''}
     </div>
-    ${spots.length?`<button class="alert-btn ${alertOn?'on':''}" id="alertBtn">${alertOn?'🔔 Alert on: we’ll ping you when you’re close':'🔔 Alert me when I’m 2 boxes away'}</button>
+    ${open.length?`<button class="alert-btn ${alertOn?'on':''}" id="alertBtn">${alertOn?'🔔 Alert on: we’ll ping you when you’re close':'🔔 Alert me when I’m 2 boxes away'}</button>
     ${alertOn?'<p class="alert-note">Keep this page open (it can be in another tab).</p>':''}`:''}`;
   const btn=$('alertBtn'); if(btn) btn.onclick=toggleAlert;
-  checkAlert(spots.length?spots[0]-1:null);
+  checkAlert(ahead);
 }
 
 // "You're up next" alert. Fires once when you get within 2 boxes, and again
@@ -396,7 +411,15 @@ function render(){
       <div class="chips">${p.list.map(o=>`<span class="chip ${o.house?'house':''} ${hit(o.name)?'hit':''}">${esc(o.name)}${o.qty>1?`<i>×${o.qty}</i>`:''}</span>`).join('')}</div>
     </article>`).join('') || '<p class="empty">Nothing on the sheet yet.</p>';
 
-  $('queue').innerHTML=queue.map((n,i)=>`<li class="${hit(n)?'hit':''}"><span class="n">${i+1}</span><span class="name">${esc(n)}</span></li>`).join('')
+  const now=data.qkeys.findIndex(k=>!struck.has(k));
+  $('qhint').innerHTML=struck.size
+    ?`${struck.size} of ${queue.length} ticked off · <button class="linkbtn" id="resetTicks">Reset</button>`
+    :'Tap a box to tick it off as Tofu opens it.';
+  const rb=$('resetTicks'); if(rb) rb.onclick=()=>{struck.clear();saveStruck();lastAhead=null;render()};
+  $('queue').innerHTML=queue.map((n,i)=>{
+    const done=struck.has(data.qkeys[i]);
+    return `<li class="${hit(n)?'hit':''} ${done?'done':''} ${i==now?'now':''}" data-i="${i}" role="button" tabindex="0" aria-pressed="${done}">
+      <span class="n">${done?'✓':i+1}</span><span class="name">${esc(n)}</span>${i==now?'<span class="now-tag">Up next</span>':''}</li>`}).join('')
     || '<li><span class="empty">Tofu hasn’t posted the rip order yet.</span></li>';
 
   $('buyers').innerHTML=buyers.map(b=>`
@@ -426,6 +449,20 @@ function setSide(s){
   store.set('tofuSide',s);
 }
 
+// Each viewer's own ticks on the rip order, saved per stream date so a new
+// stream starts fresh. Only lives in that viewer's browser.
+let struck=new Set(), struckFor=null;
+const strikeKey=()=>'tofuStrike:'+(data.date||new Date().toDateString());
+function loadStruck(){
+  const k=strikeKey(); if(k===struckFor) return; struckFor=k;
+  try{struck=new Set(JSON.parse(store.get(k)||'[]'))}catch(e){struck=new Set()}
+}
+function saveStruck(){store.set(strikeKey(),JSON.stringify([...struck]))}
+function toggleBox(i){
+  const k=data.qkeys[i]; if(!k) return;
+  struck.has(k)?struck.delete(k):struck.add(k); saveStruck(); render();
+}
+
 function setTab(t){
   if(t!='buyers') t='products';
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab==t));
@@ -438,6 +475,7 @@ async function load(){
     const r=await fetch(SHEET+'&t='+Date.now());
     if(!r.ok) throw new Error(r.status);
     data=build(parseCSV(await r.text()));
+    loadStruck();
     $('dot').className='dot'; $('status').textContent='Live · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
     render();
   }catch(e){$('dot').className='dot err'; $('status').textContent='Can’t reach the sheet, retrying…'}
@@ -450,6 +488,8 @@ $('q').value=store.get('tofuName')||'';
 setTab(store.get('tofuTab')||'products');
 document.querySelectorAll('.side-tabs button').forEach(b=>b.addEventListener('click',()=>setSide(b.dataset.side)));
 setSide(store.get('tofuSide')||'queue');
+$('queue').addEventListener('click',e=>{const li=e.target.closest('li[data-i]'); if(li) toggleBox(+li.dataset.i)});
+$('queue').addEventListener('keydown',e=>{const li=e.target.closest('li[data-i]'); if(li&&(e.key=='Enter'||e.key==' ')){e.preventDefault();toggleBox(+li.dataset.i)}});
 load(); setInterval(load,15000);
 </script>
 </body>
