@@ -151,16 +151,20 @@ h1{font:800 clamp(30px,6vw,48px)/1.05 'Bricolage Grotesque',sans-serif;letter-sp
 .chat-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px 10px;font-size:12px;color:var(--muted)}
 .chat-bar button{flex:none;border:0;background:#9146ff;color:#fff;font:600 13px Inter,sans-serif;padding:8px 12px;border-radius:10px;cursor:pointer}
 .chat-bar button:hover{filter:brightness(1.1)}
-.find .searchbox,.find .mine{max-width:none}
-.find .mine{margin-top:10px}
+.find .mine{max-width:none;margin:0}
+.find:has(.mine[hidden]){display:none}
+.hero .searchbox{margin-top:18px}
 .layout + .tabs{margin-top:26px}
 @media (min-width:960px){
   .wrap{max-width:1240px}
-  .hero{text-align:left;padding:14px 0 0;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 18px}
+  .hero{text-align:left;padding:14px 0 0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;align-items:end}
+  .hero-text{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 18px}
   .hero h1{font-size:34px;margin:0;order:1}
   .hero .meta{order:2;margin:0}
   .hero .summary{order:3;width:100%;margin:0}
-  .layout{grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:auto minmax(420px,1fr);grid-template-areas:"stream find" "stream queue"}
+  .hero .searchbox{max-width:none;margin:0}
+  .layout{grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:auto minmax(520px,1fr);grid-template-areas:"stream find" "stream queue";row-gap:0}
+  .find .mine{margin-bottom:14px}
   /* Size-contained so the rip order scrolls inside the stream's height instead of stretching the page */
   .queuebox{contain:size}
   .queue-scroll{max-height:none;flex:1;min-height:0}
@@ -188,9 +192,16 @@ footer{color:var(--muted);font-size:13px;margin-top:40px;text-align:center}
   </nav>
 
   <section class="hero">
-    <div class="meta"><span class="pill" id="date"></span><span class="live"><i class="dot" id="dot"></i><span id="status">Loading…</span></span></div>
-    <h1>What's getting ripped</h1>
-    <p class="summary" id="summary">&nbsp;</p>
+    <div class="hero-text">
+      <div class="meta"><span class="pill" id="date"></span><span class="live"><i class="dot" id="dot"></i><span id="status">Loading…</span></span></div>
+      <h1>What's getting ripped</h1>
+      <p class="summary" id="summary">&nbsp;</p>
+    </div>
+    <div class="searchbox">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input class="search" id="q" placeholder="Find your packs" autocomplete="off" aria-label="Your name">
+      <button class="clear" id="clear" hidden aria-label="Clear">×</button>
+    </div>
   </section>
 
   <div class="layout">
@@ -206,11 +217,6 @@ footer{color:var(--muted);font-size:13px;margin-top:40px;text-align:center}
     </section>
 
     <section class="find">
-      <div class="searchbox">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input class="search" id="q" placeholder="Find your packs" autocomplete="off" aria-label="Your name">
-        <button class="clear" id="clear" hidden aria-label="Clear">×</button>
-      </div>
       <div class="mine" id="mine" hidden></div>
     </section>
 
