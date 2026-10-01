@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tofu Rip Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbf6ee;--card:#ffffff;--soft:#f4ece0;--ink:#1d1a16;--muted:#7a7166;--line:#ece2d3;--accent:#ff5a1f;--accent-soft:#ffe6db;--gold:#ffd23f;--ok:#1f9d55}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141210;--card:#1e1b17;--soft:#28241e;--ink:#f6efe4;--muted:#a59a8b;--line:#312c25;--accent-soft:#3a2117}}
+:root[data-theme="dark"]{--bg:#141210;--card:#1e1b17;--soft:#28241e;--ink:#f6efe4;--muted:#a59a8b;--line:#312c25;--accent-soft:#3a2117}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px 64px}
+
+/* Top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0}
+.brand{font:800 20px 'Bricolage Grotesque',sans-serif;letter-spacing:-.01em;text-decoration:none}
+.brand span{color:var(--accent)}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:10px 16px;border-radius:999px;white-space:nowrap}
+.btn:hover{filter:brightness(1.08)}
+.btn .short{display:none}
+
+/* Hero */
+.hero{text-align:center;padding:28px 0 8px}
+.meta{display:inline-flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-bottom:12px;flex-wrap:wrap;justify-content:center}
+.pill{background:var(--gold);color:#1d1a16;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:3px 11px}
+.live{display:inline-flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:p 2s infinite}
+.dot.err{background:#d33;animation:none}
+@keyframes p{0%{box-shadow:0 0 0 0 rgba(31,157,85,.5)}70%{box-shadow:0 0 0 7px transparent}}
+h1{font:800 clamp(30px,6vw,48px)/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.025em;margin:0 0 10px}
+.summary{color:var(--muted);margin:0 0 22px}
+.summary b{color:var(--ink)}
+
+.searchbox{position:relative;max-width:520px;margin:0 auto}
+.searchbox svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.search{width:100%;padding:16px 44px 16px 50px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:500 16px Inter,sans-serif;outline:none;transition:border-color .15s}
+.search:focus{border-color:var(--accent)}
+.clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:0;background:var(--soft);color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1}
+.clear[hidden]{display:none}
+
+/* Your packs */
+.mine{max-width:520px;margin:14px auto 0;background:var(--card);border:2px solid var(--accent);border-radius:18px;padding:18px;text-align:left}
+.mine[hidden]{display:none}
+.mine h2{font:700 18px 'Bricolage Grotesque',sans-serif;margin:0 0 10px}
+.mine h2 span{color:var(--accent)}
+.mine .empty a{color:var(--accent);font-weight:600}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-top:14px}
+.facts div{background:var(--soft);border-radius:12px;padding:10px 12px}
+.facts b{display:block;font:800 22px/1.1 'Bricolage Grotesque',sans-serif}
+.facts small{color:var(--muted);font-size:12px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;background:var(--soft);padding:4px;border-radius:14px;margin:34px 0 16px;position:sticky;top:8px;z-index:5}
+.tab{flex:1;border:0;background:transparent;color:var(--muted);font:600 14px Inter,sans-serif;padding:10px 8px;border-radius:10px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.hint{color:var(--muted);font-size:13px;margin:0 0 12px}
+
+/* Shared chip */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--soft);border-radius:999px;padding:4px 11px;font-size:13px;font-weight:500}
+.chip i{font-style:normal;color:var(--muted);margin-left:3px}
+.chip.house{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+.chip.hit{background:var(--accent);color:#fff}
+.chip.hit i{color:#ffe0d3}
+
+/* Products */
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.prod{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.prod.hit{border-color:var(--accent)}
+.prod header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}
+.prod h3{margin:0;font:700 17px 'Bricolage Grotesque',sans-serif}
+.count{font:800 22px 'Bricolage Grotesque',sans-serif;color:var(--accent)}
+.count small{font:500 12px Inter,sans-serif;color:var(--muted);margin-left:3px}
+
+/* Rip order */
+.queue{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.queue li{display:flex;align-items:center;gap:14px;padding:12px 16px;border-top:1px solid var(--line)}
+.queue li:first-child{border-top:0}
+.queue .n{width:28px;height:28px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted);flex:none}
+.queue li.hit{background:var(--accent-soft)}
+.queue li.hit .n{background:var(--accent);color:#fff}
+.queue li.hit .name{font-weight:700}
+
+/* Buyers */
+.buyers{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.buyer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--line);flex-wrap:wrap}
+.buyer:first-child{border-top:0}
+.buyer.hit{background:var(--accent-soft)}
+.buyer .who{font-weight:600}
+.buyer .who small{color:var(--muted);font-weight:500;margin-left:6px}
+
+.empty{color:var(--muted);font-size:14px;margin:0}
+.panel[hidden]{display:none}
+footer{color:var(--muted);font-size:13px;margin-top:40px;text-align:center}
+
+@media (max-width:560px){
+  .top .btn .long{display:none}
+  .top .btn .short{display:inline}
+  .hero{padding-top:12px}
+  .facts b{font-size:19px}
+  .products{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top">
+    <a class="brand" href="#">Mr Tofu <span>Rips</span></a>
+    <a class="btn" href="https://mrtofu.store/collections/mr-tofu-live-stream" target="_blank" rel="noopener"><span class="long">Order for the stream →</span><span class="short">Shop →</span></a>
+  </nav>
+
+  <section class="hero">
+    <div class="meta"><span class="pill" id="date"></span><span class="live"><i class="dot" id="dot"></i><span id="status">Loading…</span></span></div>
+    <h1>What's getting ripped</h1>
+    <p class="summary" id="summary">&nbsp;</p>
+
+    <div class="searchbox">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input class="search" id="q" placeholder="Type your name to find your packs" autocomplete="off" aria-label="Your name">
+      <button class="clear" id="clear" hidden aria-label="Clear">×</button>
+    </div>
+    <div class="mine" id="mine" hidden></div>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="products">By product</button>
+    <button class="tab" role="tab" data-tab="queue">Rip order</button>
+    <button class="tab" role="tab" data-tab="buyers">By buyer</button>
+  </div>
+
+  <section class="panel" id="p-products"><div class="products" id="products"></div></section>
+  <section class="panel" id="p-queue"><p class="hint">The order Tofu opens the bundle boxes, one row per box.</p><ol class="queue" id="queue"></ol></section>
+  <section class="panel" id="p-buyers"><div class="buyers" id="buyers"></div></section>
+
+  <footer>Updates automatically from Tofu's sheet every 30 seconds</footer>
+</div>
+
+<script>
+const SHEET = 'https://docs.google.com/spreadsheets/d/1k-P9obZW_sr27We5wXntHBwLrRLQva69NbOwpRYtIDs/gviz/tq?tqx=out:csv&headers=0&gid=0';
+let data = null;
+const $ = id => document.getElementById(id);
+const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+function parseCSV(t){
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c=='"')q=true;else if(c==','){row.push(f);f=''}
+    else if(c=='\n'){row.push(f);rows.push(row);row=[];f=''}else if(c!='\r')f+=c}
+  if(f||row.length){row.push(f);rows.push(row)}
+  return rows;
+}
+
+// Col A = buyer, col B = "N x Product", col E = bundle rip order, G1 = stream date.
+// The sheet has an order log at the top, then Tofu re-lists by product under a
+// bare heading row (e.g. "KOTH") — we only read the log so nothing double counts.
+function build(rows){
+  const orders=[], queue=[];
+  let inLog=true;
+  for(const r of rows){
+    const name=(r[0]||'').trim(), item=(r[1]||'').trim(), q=(r[4]||'').trim();
+    if(q) queue.push(q);
+    if(!inLog) continue;
+    if(!name && item && !/^\d+\s*x\s+/i.test(item)){inLog=false;continue}
+    if(!item && !name) continue;
+    const m=item.match(/^(\d+)\s*x\s+(.+)$/i);
+    orders.push({name:name||'Tofu (house)',house:!name,qty:m?+m[1]:(item?1:0),product:m?m[2].trim():(item||'TBC')});
+  }
+  const date=((rows[0]||[])[6]||'').trim();
+  return {orders,queue,date};
+}
+
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const plural=(n,w)=>`${n} ${w}${n==1?'':'s'}`;
+
+function renderMine(term,hit){
+  const el=$('mine');
+  if(!term){el.hidden=true;return}
+  const {orders,queue}=data;
+  const mine=orders.filter(o=>!o.house && hit(o.name));
+  const spots=queue.map((n,i)=>hit(n)?i+1:0).filter(Boolean);
+  el.hidden=false;
+  if(!mine.length && !spots.length){
+    el.innerHTML=`<h2>No packs found for “${esc(term)}”</h2><p class="empty">Check the spelling, or <a href="https://mrtofu.store/collections/mr-tofu-live-stream" target="_blank" rel="noopener">grab a spot in the shop</a>.</p>`;
+    return;
+  }
+  const names=[...new Set(mine.map(o=>o.name).concat(queue.filter(hit)))];
+  const packs=mine.reduce((s,o)=>s+o.qty,0);
+  el.innerHTML=`<h2>Hey <span>${esc(names.join(' / '))}</span>, here's what you've got</h2>
+    <div class="chips">${mine.map(o=>`<span class="chip hit">${o.qty} × ${esc(o.product)}</span>`).join('')}</div>
+    <div class="facts">
+      <div><b>${packs}</b><small>packs total</small></div>
+      ${spots.length?`<div><b>#${spots.join(', #')}</b><small>in rip order</small></div>
+      <div><b>${spots[0]-1}</b><small>boxes before yours</small></div>`:''}
+    </div>`;
+}
+
+function render(){
+  if(!data) return;
+  const term=$('q').value.trim().toLowerCase();
+  const hit=n=>!!term && n.toLowerCase().includes(term);
+  const {orders,queue}=data;
+  $('clear').hidden=!term;
+
+  $('date').textContent=data.date||new Date().toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+
+  const byProd=new Map(), byBuyer=new Map();
+  for(const o of orders){
+    const k=o.product.toLowerCase();
+    if(!byProd.has(k)) byProd.set(k,{label:o.product,total:0,list:[]});
+    const p=byProd.get(k); p.total+=o.qty; p.list.push(o);
+    if(!o.house){
+      if(!byBuyer.has(o.name)) byBuyer.set(o.name,{name:o.name,total:0,items:new Map()});
+      const b=byBuyer.get(o.name); b.total+=o.qty; b.items.set(o.product,(b.items.get(o.product)||0)+o.qty);
+    }
+  }
+  const prods=[...byProd.values()].sort((a,b)=>b.total-a.total);
+  const buyers=[...byBuyer.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  const packs=orders.reduce((s,o)=>s+o.qty,0);
+
+  $('summary').innerHTML=`<b>${plural(packs,'pack')}</b> from <b>${buyers.length==1?'1 person':buyers.length+' people'}</b> across <b>${plural(prods.length,'product')}</b>`;
+
+  renderMine(term,hit);
+
+  $('products').innerHTML=prods.map(p=>`
+    <article class="prod ${p.list.some(o=>hit(o.name))?'hit':''}">
+      <header><h3>${esc(p.label)}</h3><span class="count">${p.total}<small>packs</small></span></header>
+      <div class="chips">${p.list.map(o=>`<span class="chip ${o.house?'house':''} ${hit(o.name)?'hit':''}">${esc(o.name)}${o.qty>1?`<i>×${o.qty}</i>`:''}</span>`).join('')}</div>
+    </article>`).join('') || '<p class="empty">Nothing on the sheet yet.</p>';
+
+  $('queue').innerHTML=queue.map((n,i)=>`<li class="${hit(n)?'hit':''}"><span class="n">${i+1}</span><span class="name">${esc(n)}</span></li>`).join('')
+    || '<li><span class="empty">Tofu hasn’t posted the rip order yet.</span></li>';
+
+  $('buyers').innerHTML=buyers.map(b=>`
+    <div class="buyer ${hit(b.name)?'hit':''}">
+      <span class="who">${esc(b.name)}<small>${plural(b.total,'pack')}</small></span>
+      <div class="chips">${[...b.items].map(([p,q])=>`<span class="chip">${q} × ${esc(p)}</span>`).join('')}</div>
+    </div>`).join('') || '<p class="empty" style="padding:16px">No orders yet.</p>';
+}
+
+function setTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab==t));
+  document.querySelectorAll('.panel').forEach(p=>p.hidden=p.id!='p-'+t);
+  store.set('tofuTab',t);
+}
+
+async function load(){
+  try{
+    const r=await fetch(SHEET+'&t='+Date.now());
+    if(!r.ok) throw new Error(r.status);
+    data=build(parseCSV(await r.text()));
+    $('dot').className='dot'; $('status').textContent='Live · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+    render();
+  }catch(e){$('dot').className='dot err'; $('status').textContent='Can’t reach the sheet, retrying…'}
+}
+
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+$('q').addEventListener('input',()=>{store.set('tofuName',$('q').value);render()});
+$('clear').addEventListener('click',()=>{$('q').value='';store.set('tofuName','');render();$('q').focus()});
+$('q').value=store.get('tofuName')||'';
+setTab(store.get('tofuTab')||'products');
+load(); setInterval(load,30000);
+</script>
+</body>
+</html>
