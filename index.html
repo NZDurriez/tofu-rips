@@ -92,6 +92,30 @@ h1{font:800 clamp(30px,6vw,48px)/1.05 'Bricolage Grotesque',sans-serif;letter-sp
 .buyer .who{font-weight:600}
 .buyer .who small{color:var(--muted);font-weight:500;margin-left:6px}
 
+.prod h3 a{text-decoration:none}
+.prod h3 a:hover{color:var(--accent)}
+.prod .sub{display:block;color:var(--muted);font:500 12px Inter,sans-serif;margin-top:2px}
+
+/* Alert button */
+.alert-btn{margin-top:14px;width:100%;border:2px solid var(--accent);background:transparent;color:var(--accent);font:600 14px Inter,sans-serif;padding:10px;border-radius:12px;cursor:pointer}
+.alert-btn.on{background:var(--accent);color:#fff}
+.alert-note{color:var(--muted);font-size:12px;margin:6px 0 0;text-align:center}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--accent);color:#fff;font:700 16px Inter,sans-serif;padding:14px 20px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:20;max-width:calc(100% - 32px);text-align:center;cursor:pointer}
+.toast[hidden]{display:none}
+
+/* Stream */
+.stream{margin-top:30px}
+.player{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#000;margin-bottom:10px}
+.player[hidden]{display:none}
+.player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.watch{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.watch-label{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.rec{width:10px;height:10px;border-radius:50%;background:#e5322d}
+.watch-links{display:flex;gap:6px;flex-wrap:wrap}
+.watch-links a{text-decoration:none;background:var(--soft);font-size:13px;font-weight:600;padding:7px 13px;border-radius:999px}
+.watch-links a:hover{background:var(--accent);color:#fff}
+.stream + .tabs{margin-top:18px}
+
 .empty{color:var(--muted);font-size:14px;margin:0}
 .panel[hidden]{display:none}
 footer{color:var(--muted);font-size:13px;margin-top:40px;text-align:center}
@@ -125,6 +149,18 @@ footer{color:var(--muted);font-size:13px;margin-top:40px;text-align:center}
     <div class="mine" id="mine" hidden></div>
   </section>
 
+  <section class="stream">
+    <div class="player" id="player" hidden></div>
+    <div class="watch">
+      <span class="watch-label"><i class="rec"></i>Watch Tofu live</span>
+      <div class="watch-links">
+        <a href="https://www.tiktok.com/@mrtofu.live/live" target="_blank" rel="noopener">TikTok</a>
+        <a href="https://www.facebook.com/MrTofuLive/live" target="_blank" rel="noopener">Facebook</a>
+        <a href="https://www.instagram.com/mrtofulive/" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+  </section>
+
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" data-tab="products">By product</button>
     <button class="tab" role="tab" data-tab="queue">Rip order</button>
@@ -135,8 +171,9 @@ footer{color:var(--muted);font-size:13px;margin-top:40px;text-align:center}
   <section class="panel" id="p-queue"><p class="hint">The order Tofu opens the bundle boxes, one row per box.</p><ol class="queue" id="queue"></ol></section>
   <section class="panel" id="p-buyers"><div class="buyers" id="buyers"></div></section>
 
-  <footer>Updates automatically from Tofu's sheet every 30 seconds</footer>
+  <footer>Updates automatically from Tofu's sheet every 15 seconds</footer>
 </div>
+<div class="toast" id="toast" role="status" aria-live="assertive" hidden></div>
 
 <script>
 const SHEET = 'https://docs.google.com/spreadsheets/d/1k-P9obZW_sr27We5wXntHBwLrRLQva69NbOwpRYtIDs/gviz/tq?tqx=out:csv&headers=0&gid=0';
@@ -154,7 +191,40 @@ function parseCSV(t){
   return rows;
 }
 
-// Col A = buyer, col B = "N x Product", col E = bundle rip order, G1 = stream date.
+// Tofu types short names on the sheet; map them to the shop's products so
+// "Storm", "Storm E" and "Storm Emeralda" count as one. Keys are lowercase
+// with everything but letters and digits stripped (see keyOf).
+const SHOP='https://mrtofu.store/products/';
+const CATALOG=[
+  {name:'King of the Hill',sub:'Pokémon Storm Emeralda · Wheel of Fate',url:'king-of-the-hill-pokemon-japanese-151',keys:['koth','kingofthehill']},
+  {name:'King of the Pirates',sub:'One Piece OP-16 · Wheel of Fate',url:'king-of-the-hill-wheel-of-fate-edition-pokemon-japanese-triplet-beat',keys:['kotp','kingofthepirates']},
+  {name:'Storm Emeralda',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-storm-emeralda-booster-pack-live',keys:['storm','storme','stormemeralda','stormemerald','emeralda']},
+  {name:'Mega Brave',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-mega-brave-booster-pack',keys:['megabrave','megab']},
+  {name:'Mega Symphonia',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-mega-symphonia-booster-pack',keys:['megas','megasymphonia','symphonia']},
+  {name:'Mega Dream',sub:'Pokémon Japanese booster box',url:'pokemon-japanese-mega-dream-booster-box-stream',keys:['megadream','megad']},
+  {name:'Battle Partners',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-battle-partners-booster-pack',keys:['battlepartners','battlepartner']},
+  {name:'Abyss Eye',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-abyss-eye-booster-pack-live',keys:['abysseye']},
+  {name:'Ninja Spinner',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-ninja-spinner-booster-pack-live',keys:['ninjaspinner']},
+  {name:'Nihil Zero',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-nihil-zero-booster-pack-live',keys:['nihilzero']},
+  {name:'Bounty Bundle',sub:'Friday Madness · Pokémon',url:'3-pack-bundle',keys:['bountybundle','bounty','fridaymadness']},
+  {name:'OP-14 Azure Sea’s Seven',sub:'One Piece Japanese booster box',url:'one-piece-card-game-the-azure-seas-seven-op-14-booster-box-japanese',keys:['op14']},
+  {name:'OP-15 Adventure on KAMI’s Island',sub:'One Piece Japanese booster box',url:'one-piece-card-game-adventure-on-kami-s-island-op-15-booster-box-japanese',keys:['op15']},
+  {name:'OP-16 The Time of Battle',sub:'One Piece Japanese booster box',url:'one-piece-card-game-the-time-of-battle-op-16-booster-box-japanese',keys:['op16']},
+  {name:'OP-18',sub:'One Piece English booster box',url:'live-stream-midnight-one-piece-card-game-english-op-18-booster-box',keys:['op18']},
+  {name:'PRB-02 The Best Vol.2',sub:'One Piece Japanese premium booster',url:'one-piece-card-game-premium-booster-box-the-best-vol-2-prb-02-japanese-stream',keys:['prb02','prb2']},
+  {name:'Blissful Eternity',sub:'Final Fantasy TCG Opus XXIX',url:'live-final-fantasy-trading-card-game-opus-xxix-blissful-eternity-booster-pack',keys:['blissfuleternity','blissful','opusxxix']},
+  {name:'Pixar',sub:'Weiss Schwarz Japanese booster pack',url:'weiss-schwarz-pixar-japanese-booster-pack',keys:['pixar']},
+  {name:'Disney 100',sub:'Weiss Schwarz booster pack',url:'weiss-schwarz-disney-100-years-of-wonder-booster-pack',keys:['disney','disney100']},
+  {name:'Harry Potter',sub:'Letogoods Sorcerer’s Stone booster pack',url:'letogoods-harry-potter-and-the-sorcerer-s-stone-series-collectible-cards-booster-pack',keys:['harrypotter','hp']},
+  {name:'Star Wars',keys:['starwars','starwas','starwar']},
+  {name:'Midweek Bundle',keys:['midweekbundle','midweek']},
+];
+const keyOf=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+const BY_KEY=new Map(CATALOG.flatMap(p=>p.keys.map(k=>[k,p])));
+const canon=raw=>BY_KEY.get(keyOf(raw))||{name:raw};
+
+// Col A = buyer, col B = "N x Product", col E = bundle rip order, G1 = stream date,
+// G2 = optional stream link (YouTube / Twitch / Facebook video) to embed.
 // The sheet has an order log at the top, then Tofu re-lists by product under a
 // bare heading row (e.g. "KOTH") — we only read the log so nothing double counts.
 function build(rows){
@@ -167,10 +237,12 @@ function build(rows){
     if(!name && item && !/^\d+\s*x\s+/i.test(item)){inLog=false;continue}
     if(!item && !name) continue;
     const m=item.match(/^(\d+)\s*x\s+(.+)$/i);
-    orders.push({name:name||'Tofu (house)',house:!name,qty:m?+m[1]:(item?1:0),product:m?m[2].trim():(item||'TBC')});
+    const prod=canon(m?m[2].trim():(item||'TBC'));
+    orders.push({name:name||'Tofu (house)',house:!name,qty:m?+m[1]:(item?1:0),product:prod.name,info:prod});
   }
   const date=((rows[0]||[])[6]||'').trim();
-  return {orders,queue,date};
+  const stream=((rows[1]||[])[6]||'').trim();
+  return {orders,queue,date,stream};
 }
 
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -195,7 +267,52 @@ function renderMine(term,hit){
       <div><b>${packs}</b><small>packs total</small></div>
       ${spots.length?`<div><b>#${spots.join(', #')}</b><small>in rip order</small></div>
       <div><b>${spots[0]-1}</b><small>boxes before yours</small></div>`:''}
-    </div>`;
+    </div>
+    ${spots.length?`<button class="alert-btn ${alertOn?'on':''}" id="alertBtn">${alertOn?'🔔 Alert on: we’ll ping you when you’re close':'🔔 Alert me when I’m 2 boxes away'}</button>
+    ${alertOn?'<p class="alert-note">Keep this page open (it can be in another tab).</p>':''}`:''}`;
+  const btn=$('alertBtn'); if(btn) btn.onclick=toggleAlert;
+  checkAlert(spots.length?spots[0]-1:null);
+}
+
+// "You're up next" alert. Fires once when you get within 2 boxes, and again
+// when it's your turn. Uses a system notification if allowed, plus an
+// on-page banner, a beep and a buzz on phones.
+let alertOn=store.get('tofuAlert')=='1', lastAhead=null, audio=null;
+async function toggleAlert(){
+  alertOn=!alertOn; store.set('tofuAlert',alertOn?'1':'0'); lastAhead=null;
+  if(alertOn){
+    try{audio=audio||new (window.AudioContext||window.webkitAudioContext)(); audio.resume()}catch(e){}
+    if('Notification' in window && Notification.permission=='default'){try{await Notification.requestPermission()}catch(e){}}
+  }
+  render();
+}
+function checkAlert(ahead){
+  if(!alertOn || ahead==null){lastAhead=ahead;return}
+  const prev=lastAhead; lastAhead=ahead;
+  if(prev==null && ahead>2) return;
+  if(ahead==0 && prev!==0) ping('🎉 You’re up! Tofu is opening your box now.');
+  else if(ahead<=2 && ahead>0 && (prev==null||prev>2)) ping(`⏰ Get ready, only ${ahead} box${ahead==1?'':'es'} before yours!`);
+}
+function ping(msg){
+  const t=$('toast'); t.textContent=msg; t.hidden=false; t.onclick=()=>t.hidden=true;
+  setTimeout(()=>t.hidden=true,15000);
+  try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
+  try{if(audio){const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=880;g.gain.setValueAtTime(.2,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.6);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+.6)}}catch(e){}
+  try{if('Notification' in window && Notification.permission=='granted' && document.hidden) new Notification('Mr Tofu Rips',{body:msg})}catch(e){}
+}
+
+// Embed the stream if Tofu pastes a link in G2. TikTok lives can't be
+// embedded, so those (and anything unrecognised) just keep the buttons.
+let shownStream=null;
+function renderStream(url){
+  if(url===shownStream) return; shownStream=url;
+  const el=$('player'); let src='';
+  let m;
+  if((m=url.match(/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([\w-]{6,})/))) src='https://www.youtube.com/embed/'+m[1]+'?autoplay=1&mute=1';
+  else if((m=url.match(/twitch\.tv\/(\w+)/))) src='https://player.twitch.tv/?channel='+m[1]+'&parent='+location.hostname+'&muted=true';
+  else if(/facebook\.com\/.+\/videos\/|fb\.watch\//.test(url)) src='https://www.facebook.com/plugins/video.php?href='+encodeURIComponent(url)+'&show_text=false&autoplay=true&mute=true';
+  el.hidden=!src;
+  el.innerHTML=src?`<iframe src="${esc(src)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="Tofu's live stream"></iframe>`:'';
 }
 
 function render(){
@@ -205,12 +322,13 @@ function render(){
   const {orders,queue}=data;
   $('clear').hidden=!term;
 
+  renderStream(data.stream);
   $('date').textContent=data.date||new Date().toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
 
   const byProd=new Map(), byBuyer=new Map();
   for(const o of orders){
     const k=o.product.toLowerCase();
-    if(!byProd.has(k)) byProd.set(k,{label:o.product,total:0,list:[]});
+    if(!byProd.has(k)) byProd.set(k,{label:o.product,info:o.info,total:0,list:[]});
     const p=byProd.get(k); p.total+=o.qty; p.list.push(o);
     if(!o.house){
       if(!byBuyer.has(o.name)) byBuyer.set(o.name,{name:o.name,total:0,items:new Map()});
@@ -227,7 +345,7 @@ function render(){
 
   $('products').innerHTML=prods.map(p=>`
     <article class="prod ${p.list.some(o=>hit(o.name))?'hit':''}">
-      <header><h3>${esc(p.label)}</h3><span class="count">${p.total}<small>packs</small></span></header>
+      <header><h3>${p.info.url?`<a href="${SHOP+p.info.url}" target="_blank" rel="noopener">${esc(p.label)}</a>`:esc(p.label)}${p.info.sub?`<span class="sub">${esc(p.info.sub)}</span>`:''}</h3><span class="count">${p.total}<small>packs</small></span></header>
       <div class="chips">${p.list.map(o=>`<span class="chip ${o.house?'house':''} ${hit(o.name)?'hit':''}">${esc(o.name)}${o.qty>1?`<i>×${o.qty}</i>`:''}</span>`).join('')}</div>
     </article>`).join('') || '<p class="empty">Nothing on the sheet yet.</p>';
 
@@ -258,11 +376,11 @@ async function load(){
 }
 
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
-$('q').addEventListener('input',()=>{store.set('tofuName',$('q').value);render()});
+$('q').addEventListener('input',()=>{store.set('tofuName',$('q').value);lastAhead=null;render()});
 $('clear').addEventListener('click',()=>{$('q').value='';store.set('tofuName','');render();$('q').focus()});
 $('q').value=store.get('tofuName')||'';
 setTab(store.get('tofuTab')||'products');
-load(); setInterval(load,30000);
+load(); setInterval(load,15000);
 </script>
 </body>
 </html>
