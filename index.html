@@ -114,7 +114,36 @@ h1{font:800 clamp(30px,6vw,48px)/1.05 'Bricolage Grotesque',sans-serif;letter-sp
 .watch-links{display:flex;gap:6px;flex-wrap:wrap}
 .watch-links a{text-decoration:none;background:var(--soft);font-size:13px;font-weight:600;padding:7px 13px;border-radius:999px}
 .watch-links a:hover{background:var(--accent);color:#fff}
-.stream + .tabs{margin-top:18px}
+
+/* Stream + sidebar layout */
+.layout{display:grid;gap:14px;grid-template-areas:"find" "stream" "queue";margin-top:18px}
+.stream{grid-area:stream;margin:0}
+.find{grid-area:find}
+.queuebox{grid-area:queue;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.side-tabs{display:flex;gap:4px;background:var(--soft);padding:4px;margin:10px 10px 0;border-radius:12px}
+.side-tabs button{flex:1;border:0;background:transparent;color:var(--muted);font:600 13px Inter,sans-serif;padding:8px;border-radius:9px;cursor:pointer}
+.side-tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.side-pane[hidden]{display:none}
+.queue-scroll{overflow:auto;max-height:380px;padding:10px 0 0}
+.queue-scroll .hint{padding:0 16px;margin-bottom:6px}
+.queuebox .queue{border:0;border-radius:0}
+.chat{height:460px;margin-top:10px}
+.chat iframe{width:100%;height:100%;border:0;display:block}
+.find .searchbox,.find .mine{max-width:none}
+.find .mine{margin-top:10px}
+.layout + .tabs{margin-top:26px}
+@media (min-width:960px){
+  .wrap{max-width:1240px}
+  .hero{text-align:left;padding:14px 0 0;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 18px}
+  .hero h1{font-size:34px;margin:0;order:1}
+  .hero .meta{order:2;margin:0}
+  .hero .summary{order:3;width:100%;margin:0}
+  .layout{grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:auto minmax(420px,1fr);grid-template-areas:"stream find" "stream queue"}
+  /* Size-contained so the rip order scrolls inside the stream's height instead of stretching the page */
+  .queuebox{contain:size}
+  .queue-scroll{max-height:none;flex:1;min-height:0}
+  .chat{height:auto;flex:1;min-height:0}
+}
 
 .empty{color:var(--muted);font-size:14px;margin:0}
 .panel[hidden]{display:none}
@@ -140,34 +169,45 @@ footer{color:var(--muted);font-size:13px;margin-top:40px;text-align:center}
     <div class="meta"><span class="pill" id="date"></span><span class="live"><i class="dot" id="dot"></i><span id="status">Loading…</span></span></div>
     <h1>What's getting ripped</h1>
     <p class="summary" id="summary">&nbsp;</p>
-
-    <div class="searchbox">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input class="search" id="q" placeholder="Type your name to find your packs" autocomplete="off" aria-label="Your name">
-      <button class="clear" id="clear" hidden aria-label="Clear">×</button>
-    </div>
-    <div class="mine" id="mine" hidden></div>
   </section>
 
-  <section class="stream">
-    <div class="player" id="player" hidden></div>
-    <div class="watch">
-      <span class="watch-label"><i class="rec"></i>Watch Tofu live</span>
-      <div class="watch-links">
-        <a href="https://www.twitch.tv/mrtofulive" target="_blank" rel="noopener">Open on Twitch</a>
-        <a href="https://www.tiktok.com/@mrtofu.live/live" target="_blank" rel="noopener">TikTok</a>
+  <div class="layout">
+    <section class="stream">
+      <div class="player" id="player" hidden></div>
+      <div class="watch">
+        <span class="watch-label"><i class="rec"></i>Watch Tofu live</span>
+        <div class="watch-links">
+          <a href="https://www.twitch.tv/mrtofulive" target="_blank" rel="noopener">Open on Twitch</a>
+          <a href="https://www.tiktok.com/@mrtofu.live/live" target="_blank" rel="noopener">TikTok</a>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <section class="find">
+      <div class="searchbox">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search" id="q" placeholder="Find your packs" autocomplete="off" aria-label="Your name">
+        <button class="clear" id="clear" hidden aria-label="Clear">×</button>
+      </div>
+      <div class="mine" id="mine" hidden></div>
+    </section>
+
+    <section class="queuebox">
+      <div class="side-tabs" role="tablist">
+        <button role="tab" data-side="queue">Rip order</button>
+        <button role="tab" data-side="chat">Twitch chat</button>
+      </div>
+      <div class="side-pane queue-scroll" id="s-queue"><p class="hint">Bundle boxes, in the order Tofu opens them.</p><ol class="queue" id="queue"></ol></div>
+      <div class="side-pane chat" id="s-chat" hidden></div>
+    </section>
+  </div>
 
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" data-tab="products">By product</button>
-    <button class="tab" role="tab" data-tab="queue">Rip order</button>
     <button class="tab" role="tab" data-tab="buyers">By buyer</button>
   </div>
 
   <section class="panel" id="p-products"><div class="products" id="products"></div></section>
-  <section class="panel" id="p-queue"><p class="hint">The order Tofu opens the bundle boxes, one row per box.</p><ol class="queue" id="queue"></ol></section>
   <section class="panel" id="p-buyers"><div class="buyers" id="buyers"></div></section>
 
   <footer>Updates automatically from Tofu's sheet every 15 seconds</footer>
@@ -362,7 +402,21 @@ function render(){
     </div>`).join('') || '<p class="empty" style="padding:16px">No orders yet.</p>';
 }
 
+// Sidebar: rip order or Twitch chat. The chat iframe is only created the
+// first time it's opened so it doesn't load for people who never look.
+function setSide(s){
+  if(s!='chat') s='queue';
+  document.querySelectorAll('.side-tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.side==s));
+  $('s-queue').hidden=s!='queue'; $('s-chat').hidden=s!='chat';
+  if(s=='chat' && !$('s-chat').firstChild){
+    const dark=matchMedia('(prefers-color-scheme: dark)').matches?'&darkpopout':'';
+    $('s-chat').innerHTML=`<iframe src="https://www.twitch.tv/embed/mrtofulive/chat?parent=${location.hostname}${dark}" title="Tofu's Twitch chat"></iframe>`;
+  }
+  store.set('tofuSide',s);
+}
+
 function setTab(t){
+  if(t!='buyers') t='products';
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab==t));
   document.querySelectorAll('.panel').forEach(p=>p.hidden=p.id!='p-'+t);
   store.set('tofuTab',t);
@@ -383,6 +437,8 @@ $('q').addEventListener('input',()=>{store.set('tofuName',$('q').value);lastAhea
 $('clear').addEventListener('click',()=>{$('q').value='';store.set('tofuName','');render();$('q').focus()});
 $('q').value=store.get('tofuName')||'';
 setTab(store.get('tofuTab')||'products');
+document.querySelectorAll('.side-tabs button').forEach(b=>b.addEventListener('click',()=>setSide(b.dataset.side)));
+setSide(store.get('tofuSide')||'queue');
 load(); setInterval(load,15000);
 </script>
 </body>
