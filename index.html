@@ -67,46 +67,76 @@ h1{font:800 clamp(30px,6vw,48px)/1.05 'Bricolage Grotesque',sans-serif;letter-sp
 .chip.hit i{color:#ffe0d3}
 
 /* Products */
-.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
-.prod{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;grid-auto-flow:dense}
+.prod{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;transition:border-color .15s}
+@media (min-width:760px){.prod.wide{grid-column:span 2}}
 .prod.hit{border-color:var(--accent)}
-.prod header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}
-.prod h3{margin:0;font:700 17px 'Bricolage Grotesque',sans-serif}
-.count{font:800 22px 'Bricolage Grotesque',sans-serif;color:var(--accent)}
-.count small{font:500 12px Inter,sans-serif;color:var(--muted);margin-left:3px}
+.prod header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.prod .pmeta{flex:1;min-width:0}
+.prod h3{margin:0;font:700 18px/1.2 'Bricolage Grotesque',sans-serif}
+.prod h3 a{text-decoration:none}
+.prod h3 a:hover{color:var(--accent)}
+.prod .sub{display:block;color:var(--muted);font:500 12.5px Inter,sans-serif;margin-top:3px}
+.thumb{width:64px;height:64px;object-fit:contain;flex:none;border-radius:12px;background:#fff;padding:4px;border:1px solid var(--line)}
+.thumb.blank{display:grid;place-items:center;background:var(--soft);font-size:26px;padding:0}
+.count{flex:none;align-self:flex-start;text-align:center;background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:6px 10px;min-width:56px}
+.count b{display:block;font:800 22px/1 'Bricolage Grotesque',sans-serif}
+.count small{display:block;font:600 10.5px Inter,sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;opacity:.85}
+.prod .chips{margin-top:auto}
+.chip{display:inline-flex;align-items:center;gap:6px}
+.chip .q{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--card);color:var(--ink);font-size:11.5px;font-weight:800}
+.chip.hit .q{background:#fff;color:var(--accent)}
+.chip.house .q{background:var(--soft)}
 
 /* Rip order */
 .queue{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.queue li{display:flex;align-items:center;gap:14px;padding:12px 16px;border-top:1px solid var(--line)}
+.queue li{display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--line);cursor:pointer;user-select:none;transition:background .12s}
 .queue li:first-child{border-top:0}
-.queue .n{width:28px;height:28px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted);flex:none}
+.queue li:hover{background:var(--soft)}
+.queue .n{min-width:30px;height:30px;padding:0 7px;border-radius:999px;background:var(--soft);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted);flex:none;white-space:nowrap}
+.queue .who{flex:1;min-width:0}
+.queue .name{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.queue .what{display:none;color:var(--muted);font-size:12px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (hover:none){.queue .what{display:block}}
+.queue .boxes{flex:none;font-size:11.5px;font-weight:700;color:var(--muted);background:var(--soft);border-radius:999px;padding:3px 9px}
 .queue li.hit{background:var(--accent-soft)}
 .queue li.hit .n{background:var(--accent);color:#fff}
-.queue li.hit .name{font-weight:700}
-.queue li{cursor:pointer;user-select:none;transition:background .12s}
-.queue li:hover{background:var(--soft)}
+.queue li.hit .name{font-weight:800}
 .queue li.done{opacity:.45}
 .queue li.done .name{text-decoration:line-through}
 .queue li.done .n{background:var(--ok);color:#fff}
+.queue li.part .n{background:linear-gradient(90deg,var(--ok) var(--p),var(--soft) var(--p));color:var(--ink)}
 .queue li.now{box-shadow:inset 3px 0 0 var(--accent)}
-.queue li.now .name{font-weight:700}
-.now-tag{margin-left:auto;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.queue li.now .name{font-weight:800}
+.now-tag{flex:none;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
 .linkbtn{border:0;background:none;padding:0;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline}
 
-/* Buyers */
-.buyers{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.buyer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--line);flex-wrap:wrap}
-.buyer:first-child{border-top:0}
-.buyer.hit{background:var(--accent-soft)}
-.buyer .who{font-weight:600}
-.buyer .who small{color:var(--muted);font-weight:500;margin-left:6px}
+/* Hover card for rip order rows */
+.qtip{position:fixed;z-index:40;width:260px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 16px 40px rgba(0,0,0,.28);pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s}
+.qtip.show{opacity:1;transform:none}
+.qtip h4{margin:0 0 2px;font:700 15px 'Bricolage Grotesque',sans-serif}
+.qtip .spot{color:var(--muted);font-size:12px;margin-bottom:10px}
+.qtip ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.qtip li{display:flex;align-items:center;gap:8px;font-size:13px}
+.qtip li img,.qtip li .ph{width:28px;height:28px;object-fit:contain;border-radius:7px;background:#fff;border:1px solid var(--line);flex:none}
+.qtip li .ph{background:var(--soft)}
+.qtip li b{color:var(--accent);min-width:26px}
+.qtip .none{color:var(--muted);font-size:13px}
 
-.prod header{align-items:center}
-.prod h3{flex:1;min-width:0}
-.thumb{width:56px;height:56px;object-fit:contain;flex:none;border-radius:10px;background:#fff;padding:3px;border:1px solid var(--line)}
-.prod h3 a{text-decoration:none}
-.prod h3 a:hover{color:var(--accent)}
-.prod .sub{display:block;color:var(--muted);font:500 12px Inter,sans-serif;margin-top:2px}
+/* Buyers */
+.buyers{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.buyer{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.buyer.hit{border-color:var(--accent);background:var(--accent-soft)}
+.buyer header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+.buyer .who{font:700 16px 'Bricolage Grotesque',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.buyer .tot{flex:none;color:var(--muted);font-size:12.5px;font-weight:600}
+.buyer ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.buyer li{display:flex;align-items:center;gap:9px;font-size:14px}
+.buyer li img,.buyer li .ph{width:30px;height:30px;object-fit:contain;border-radius:8px;background:#fff;border:1px solid var(--line);flex:none}
+.buyer li .ph{background:var(--soft)}
+.buyer li b{color:var(--accent);min-width:26px}
+.buyer .rip{display:inline-block;margin-top:10px;font-size:12px;font-weight:600;color:var(--muted);background:var(--soft);border-radius:999px;padding:3px 10px}
+.buyers > .empty{padding:16px}
 
 /* Alert button */
 .alert-btn{margin-top:14px;width:100%;border:2px solid var(--accent);background:transparent;color:var(--accent);font:600 14px Inter,sans-serif;padding:10px;border-radius:12px;cursor:pointer}
@@ -241,6 +271,7 @@ footer{color:var(--muted);font-size:13px;margin-top:40px;text-align:center}
   <footer>Updates automatically from Tofu's sheet every 15 seconds</footer>
 </div>
 <div class="toast" id="toast" role="status" aria-live="assertive" hidden></div>
+<div class="qtip" id="qtip" role="tooltip"></div>
 
 <script>
 const SHEET = 'https://docs.google.com/spreadsheets/d/1k-P9obZW_sr27We5wXntHBwLrRLQva69NbOwpRYtIDs/gviz/tq?tqx=out:csv&headers=0&gid=0';
@@ -269,11 +300,11 @@ const CATALOG=[
   {name:'Mega Brave',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-mega-brave-booster-pack',keys:['megabrave','megab']},
   {name:'Mega Symphonia',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-mega-symphonia-booster-pack',keys:['megas','megasymphonia','symphonia']},
   {name:'Mega Dream',sub:'Pokémon Japanese booster box',url:'pokemon-japanese-mega-dream-booster-box-stream',keys:['megadream','megad']},
-  {name:'Battle Partners',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-battle-partners-booster-pack',keys:['battlepartners','battlepartner']},
+  {name:'Battle Partners',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-battle-partners-booster-pack',keys:['battlepartners','battlepartner','battle','bp']},
   {name:'Abyss Eye',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-abyss-eye-booster-pack-live',keys:['abysseye']},
   {name:'Ninja Spinner',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-ninja-spinner-booster-pack-live',keys:['ninjaspinner']},
   {name:'Nihil Zero',sub:'Pokémon Japanese booster pack',url:'pokemon-japanese-nihil-zero-booster-pack-live',keys:['nihilzero']},
-  {name:'Bounty Bundle',sub:'Friday Madness · Pokémon',url:'3-pack-bundle',keys:['bountybundle','bounty','fridaymadness']},
+  {name:'Friday Bundle',sub:'Friday Madness · Pokémon Bounty Bundle',url:'3-pack-bundle',keys:['fridaybundle','friday','fridaymadness','fridaymadnessbundle','bountybundle','bounty']},
   {name:'OP-14 Azure Sea’s Seven',sub:'One Piece Japanese booster box',url:'one-piece-card-game-the-azure-seas-seven-op-14-booster-box-japanese',keys:['op14']},
   {name:'OP-15 Adventure on KAMI’s Island',sub:'One Piece Japanese booster box',url:'one-piece-card-game-adventure-on-kami-s-island-op-15-booster-box-japanese',keys:['op15']},
   {name:'OP-16 The Time of Battle',sub:'One Piece Japanese booster box',url:'one-piece-card-game-the-time-of-battle-op-16-booster-box-japanese',keys:['op16']},
@@ -342,6 +373,26 @@ function build(rows){
 
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const plural=(n,w)=>`${n} ${w}${n==1?'':'s'}`;
+const same=(a,b)=>a.trim().toLowerCase()==b.trim().toLowerCase();
+const range=(a,b)=>a==b?`${a}`:`${a}–${b}`;
+// [1,2,3,8] -> "#1–3, #8"
+function fmtSpots(spots){
+  const out=[]; let s=null,p=null;
+  for(const x of spots){ if(s==null){s=p=x} else if(x==p+1){p=x} else {out.push('#'+range(s,p)); s=p=x} }
+  if(s!=null) out.push('#'+range(s,p));
+  return out.join(', ');
+}
+// Back-to-back boxes for the same person become one row in the rip order.
+function groupQueue(){
+  const g=[];
+  data.queue.forEach((n,i)=>{
+    const last=g[g.length-1];
+    if(last && same(last.name,n)) last.idx.push(i); else g.push({name:n,idx:[i]});
+  });
+  return g;
+}
+const thumbHtml=info=>imgFor(info)?`<img src="${imgFor(info)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ph'}))">`:'<span class="ph"></span>';
+let qgroups=[], buyerItems=new Map();
 
 function renderMine(term,hit){
   const el=$('mine');
@@ -363,7 +414,7 @@ function renderMine(term,hit){
     <div class="chips">${mine.map(o=>`<span class="chip hit">${o.qty} × ${esc(o.product)}</span>`).join('')}</div>
     <div class="facts">
       <div><b>${packs}</b><small>packs total</small></div>
-      ${spots.length?`<div><b>#${spots.join(', #')}</b><small>in rip order</small></div>
+      ${spots.length?`<div><b>${fmtSpots(spots)}</b><small>in rip order</small></div>
       <div><b>${ahead==null?'✓':ahead}</b><small>${ahead==null?'all your boxes ripped':'boxes left before yours'}</small></div>`:''}
     </div>
     ${open.length?`<button class="alert-btn ${alertOn?'on':''}" id="alertBtn">${alertOn?'🔔 Alert on: we’ll ping you when you’re close':'🔔 Alert me when I’m 2 boxes away'}</button>
@@ -435,9 +486,13 @@ function render(){
     const p=byProd.get(k); p.total+=o.qty; p.list.push(o);
     if(!o.house){
       if(!byBuyer.has(o.name)) byBuyer.set(o.name,{name:o.name,total:0,items:new Map()});
-      const b=byBuyer.get(o.name); b.total+=o.qty; b.items.set(o.product,(b.items.get(o.product)||0)+o.qty);
+      const b=byBuyer.get(o.name); b.total+=o.qty;
+      const it=b.items.get(o.product)||{product:o.product,info:o.info,qty:0}; it.qty+=o.qty; b.items.set(o.product,it);
     }
   }
+  buyerItems=new Map([...byBuyer.values()].map(b=>[b.name.trim().toLowerCase(),[...b.items.values()]]));
+  qgroups=groupQueue();
+  const spotsFor=name=>queue.map((n,i)=>same(n,name)?i+1:0).filter(Boolean);
   const prods=[...byProd.values()].sort((a,b)=>b.total-a.total);
   const buyers=[...byBuyer.values()].sort((a,b)=>a.name.localeCompare(b.name));
   const packs=orders.reduce((s,o)=>s+o.qty,0);
@@ -446,28 +501,47 @@ function render(){
 
   renderMine(term,hit);
 
-  $('products').innerHTML=prods.map(p=>`
-    <article class="prod ${p.list.some(o=>hit(o.name))?'hit':''}">
-      <header>${imgFor(p.info)?`<img class="thumb" src="${imgFor(p.info)}" alt="" loading="lazy" onerror="this.remove()">`:''}<h3>${p.info.url?`<a href="${SHOP+p.info.url}" target="_blank" rel="noopener">${esc(p.label)}</a>`:esc(p.label)}${p.info.sub?`<span class="sub">${esc(p.info.sub)}</span>`:''}</h3><span class="count">${p.total}<small>packs</small></span></header>
-      <div class="chips">${p.list.map(o=>`<span class="chip ${o.house?'house':''} ${hit(o.name)?'hit':''}">${esc(o.name)}${o.qty>1?`<i>×${o.qty}</i>`:''}</span>`).join('')}</div>
-    </article>`).join('') || '<p class="empty">Nothing on the sheet yet.</p>';
+  $('products').innerHTML=prods.map(p=>{
+    // One chip per buyer, even if they ordered the same product on two rows
+    const who=new Map();
+    for(const o of p.list){ const k=o.name.toLowerCase(); const w=who.get(k)||{name:o.name,house:o.house,qty:0}; w.qty+=o.qty; who.set(k,w); }
+    const chips=[...who.values()];
+    return `
+    <article class="prod ${chips.length>14?'wide':''} ${chips.some(w=>hit(w.name))?'hit':''}">
+      <header>
+        ${imgFor(p.info)?`<img class="thumb" src="${imgFor(p.info)}" alt="" loading="lazy" onerror="this.remove()">`:'<span class="thumb blank">📦</span>'}
+        <div class="pmeta">
+          <h3>${p.info.url?`<a href="${SHOP+p.info.url}" target="_blank" rel="noopener">${esc(p.label)}</a>`:esc(p.label)}</h3>
+          ${p.info.sub?`<span class="sub">${esc(p.info.sub)}</span>`:''}
+        </div>
+        <span class="count"><b>${p.total}</b><small>${p.total==1?'pack':'packs'}</small></span>
+      </header>
+      <div class="chips">${chips.map(w=>`<span class="chip ${w.house?'house':''} ${hit(w.name)?'hit':''}">${w.qty>1?`<span class="q">${w.qty}</span>`:''}${esc(w.house?'Tofu’s own':w.name)}</span>`).join('')}</div>
+    </article>`}).join('') || '<p class="empty">Nothing on the sheet yet.</p>';
 
-  const now=data.qkeys.findIndex(k=>!struck.has(k));
+  const nowBox=data.qkeys.findIndex(k=>!struck.has(k));
   $('qhint').innerHTML=struck.size
-    ?`${struck.size} of ${queue.length} ticked off · <button class="linkbtn" id="resetTicks">Reset</button>`
-    :'Tap a box to tick it off as Tofu opens it.';
+    ?`${struck.size} of ${queue.length} boxes ticked off ·<button class="linkbtn" id="resetTicks">Reset</button>`
+    :`Tap a name to tick it off as Tofu opens it.${matchMedia('(hover: hover)').matches?' Hover to see what they’re ripping.':''}`;
   const rb=$('resetTicks'); if(rb) rb.onclick=()=>{struck.clear();saveStruck();lastAhead=null;render()};
-  $('queue').innerHTML=queue.map((n,i)=>{
-    const done=struck.has(data.qkeys[i]);
-    return `<li class="${hit(n)?'hit':''} ${done?'done':''} ${i==now?'now':''}" data-i="${i}" role="button" tabindex="0" aria-pressed="${done}">
-      <span class="n">${done?'✓':i+1}</span><span class="name">${esc(n)}</span>${i==now?'<span class="now-tag">Up next</span>':''}</li>`}).join('')
+  $('queue').innerHTML=qgroups.map((g,gi)=>{
+    const doneN=g.idx.filter(i=>struck.has(data.qkeys[i])).length;
+    const done=doneN==g.idx.length, part=doneN>0&&!done, isNow=g.idx.includes(nowBox);
+    const what=(buyerItems.get(g.name.trim().toLowerCase())||[]).map(it=>`${it.qty}× ${it.product}`).join(' · ');
+    return `<li class="${hit(g.name)?'hit':''} ${done?'done':''} ${part?'part':''} ${isNow?'now':''}" data-g="${gi}" ${part?`style="--p:${Math.round(doneN/g.idx.length*100)}%"`:''} role="button" tabindex="0" aria-pressed="${done}">
+      <span class="n">${done?'✓':range(g.idx[0]+1,g.idx[g.idx.length-1]+1)}</span>
+      <span class="who"><span class="name">${esc(g.name)}</span>${what?`<span class="what">${esc(what)}</span>`:''}</span>
+      ${g.idx.length>1?`<span class="boxes">${g.idx.length} boxes</span>`:''}${isNow?'<span class="now-tag">Up next</span>':''}</li>`}).join('')
     || '<li><span class="empty">Tofu hasn’t posted the rip order yet.</span></li>';
 
-  $('buyers').innerHTML=buyers.map(b=>`
+  $('buyers').innerHTML=buyers.map(b=>{
+    const spots=spotsFor(b.name);
+    return `
     <div class="buyer ${hit(b.name)?'hit':''}">
-      <span class="who">${esc(b.name)}<small>${plural(b.total,'pack')}</small></span>
-      <div class="chips">${[...b.items].map(([p,q])=>`<span class="chip">${q} × ${esc(p)}</span>`).join('')}</div>
-    </div>`).join('') || '<p class="empty" style="padding:16px">No orders yet.</p>';
+      <header><span class="who">${esc(b.name)}</span><span class="tot">${plural(b.total,'pack')}</span></header>
+      <ul>${[...b.items.values()].map(it=>`<li>${thumbHtml(it.info)}<b>${it.qty}×</b><span>${esc(it.product)}</span></li>`).join('')}</ul>
+      ${spots.length?`<span class="rip">Rip order ${fmtSpots(spots)}</span>`:''}
+    </div>`}).join('') || '<p class="empty">No orders yet.</p>';
 }
 
 // Mini player: when the stream scrolls out of view, pin it to the corner so
@@ -509,9 +583,38 @@ function loadStruck(){
   try{struck=new Set(JSON.parse(store.get(k)||'[]'))}catch(e){struck=new Set()}
 }
 function saveStruck(){store.set(strikeKey(),JSON.stringify([...struck]))}
-function toggleBox(i){
-  const k=data.qkeys[i]; if(!k) return;
-  struck.has(k)?struck.delete(k):struck.add(k); saveStruck(); render();
+// A merged row ticks all of that person's back-to-back boxes at once.
+function toggleGroup(gi){
+  const g=qgroups[gi]; if(!g) return;
+  const keys=g.idx.map(i=>data.qkeys[i]);
+  const allDone=keys.every(k=>struck.has(k));
+  keys.forEach(k=>allDone?struck.delete(k):struck.add(k));
+  saveStruck(); render(); hideTip();
+}
+
+// Hover card on the rip order: who it is and what they're ripping.
+const tip=$('qtip');
+function showTip(li){
+  const g=qgroups[+li.dataset.g]; if(!g) return;
+  const items=buyerItems.get(g.name.trim().toLowerCase())||[];
+  const first=g.idx[0]+1, last=g.idx[g.idx.length-1]+1;
+  tip.innerHTML=`<h4>${esc(g.name)}</h4>
+    <div class="spot">Rip #${range(first,last)} · ${g.idx.length==1?'1 box':g.idx.length+' boxes'}</div>
+    ${items.length?`<ul>${items.map(it=>`<li>${thumbHtml(it.info)}<b>${it.qty}×</b><span>${esc(it.product)}</span></li>`).join('')}</ul>`
+      :'<div class="none">No order found under this name on the sheet.</div>'}`;
+  const r=li.getBoundingClientRect(), tw=260, th=tip.offsetHeight;
+  let left=r.left-tw-10, top=r.top;
+  if(left<8){ left=Math.min(r.left+12, innerWidth-tw-8); top=r.bottom+6; }
+  top=Math.max(8, Math.min(top, innerHeight-th-8));
+  tip.style.left=left+'px'; tip.style.top=top+'px';
+  tip.classList.add('show');
+}
+function hideTip(){ tip.classList.remove('show'); }
+if(matchMedia('(hover: hover)').matches){
+  $('queue').addEventListener('mouseover',e=>{const li=e.target.closest('li[data-g]'); if(li) showTip(li)});
+  $('queue').addEventListener('mouseleave',hideTip);
+  $('s-queue').addEventListener('scroll',hideTip);
+  addEventListener('scroll',hideTip,{passive:true});
 }
 
 function setTab(t){
@@ -539,8 +642,10 @@ $('q').value=store.get('tofuName')||'';
 setTab(store.get('tofuTab')||'products');
 document.querySelectorAll('.side-tabs button').forEach(b=>b.addEventListener('click',()=>setSide(b.dataset.side)));
 setSide(store.get('tofuSide')||'queue');
-$('queue').addEventListener('click',e=>{const li=e.target.closest('li[data-i]'); if(li) toggleBox(+li.dataset.i)});
-$('queue').addEventListener('keydown',e=>{const li=e.target.closest('li[data-i]'); if(li&&(e.key=='Enter'||e.key==' ')){e.preventDefault();toggleBox(+li.dataset.i)}});
+$('queue').addEventListener('click',e=>{const li=e.target.closest('li[data-g]'); if(li) toggleGroup(+li.dataset.g)});
+$('queue').addEventListener('keydown',e=>{const li=e.target.closest('li[data-g]'); if(li&&(e.key=='Enter'||e.key==' ')){e.preventDefault();toggleGroup(+li.dataset.g)}});
+$('queue').addEventListener('focusin',e=>{const li=e.target.closest('li[data-g]'); if(li&&matchMedia('(hover: hover)').matches) showTip(li)});
+$('queue').addEventListener('focusout',hideTip);
 load(); setInterval(load,15000);
 </script>
 </body>
